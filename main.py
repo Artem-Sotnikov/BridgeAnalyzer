@@ -16,4 +16,5 @@ if __name__ == "__main__":
     
     app = QApplication([])
     main_frame = MainFrame()
+
     app.exec()
