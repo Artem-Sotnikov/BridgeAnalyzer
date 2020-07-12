@@ -27,6 +27,9 @@ class DataExtractor():
 
         print(output_list)
         return output_list
-# Test
-#extractor = DataExtractor()
-#extractor.extract_data(r"C:/Users/Artem Sotnikov/Documents/test_data_extract3.csv")
+
+if __name__ == '__main__':
+    # Test
+    extractor = DataExtractor()
+    extractor.extract_data(r"C:/Users/Artem Sotnikov/Documents/test_data_extract3.csv")
+
