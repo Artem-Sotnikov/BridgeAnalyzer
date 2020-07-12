@@ -8,9 +8,13 @@ def createMembers(vertexList, ss):
 
     outputList = {} #dictionary where key is nodeID and val are coordinates
     nodeCount = 1 #nodeID of current node being added
+
+    bridgeCost = 0.0
     
     for element in vertexList:
         ss.add_truss_element(location=[element[0],element[1]])
+
+        bridgeCost += element[2] * 10;
 
         if element[0] not in outputList.values():
             outputList[nodeCount] = element[0]
@@ -20,7 +24,9 @@ def createMembers(vertexList, ss):
             outputList[nodeCount] = element[1]
             nodeCount = nodeCount + 1
 
-    return outputList
+    bridgeCost += 5 * nodeCount
+    
+    return outputList, bridgeCost
 
 #Add pin and roller support to appropriate nodes
 #Based on left support being at 0,0 and right support being at 14,0

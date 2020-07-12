@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     ss = anastruct.SystemElements()
     
-    nodeDict = coolCalculator.createMembers(output_list, ss)
+    nodeDict, bridgeCost = coolCalculator.createMembers(output_list, ss)
 
     print(nodeDict)
     
