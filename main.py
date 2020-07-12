@@ -22,4 +22,9 @@ if __name__ == "__main__":
     
     coolCalculator.addSupports(ss, nodeDict)
     coolCalculator.addLoads(ss, nodeDict)
+
+    print("Cost: $" + str(bridgeCost))
+
     coolCalculator.runSimulation(ss)
+    print(ss.get_element_results())
+ 

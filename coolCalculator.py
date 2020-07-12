@@ -1,5 +1,5 @@
-
 #This is a test :P
+#Maximo's kickass code
 import anastruct
 
 #Add all elements to truss
@@ -24,7 +24,7 @@ def createMembers(vertexList, ss):
             outputList[nodeCount] = element[1]
             nodeCount = nodeCount + 1
 
-    bridgeCost += 5 * nodeCount
+    bridgeCost += 5 * (nodeCount - 1)
     
     return outputList, bridgeCost
 
@@ -53,7 +53,7 @@ def addLoads(ss, outputList):
             nodeCount = nodeCount + 1
             loadNodes[key] = val
 
-    distributedLoad = totalLoad / float(nodeCount) * 1000#point load on each node
+    distributedLoad = totalLoad / float(nodeCount) * 1000 #point load on each node
 
     #Add load to relevant points
     for key in loadNodes.keys():
@@ -65,5 +65,16 @@ def runSimulation(ss):
     ss.show_structure()
     ss.show_reaction_force()
     ss.show_axial_force()
+
+#Check if it is possible to construct bridge with doubled up members
+#Return True if bridge is valid, false if not
+def isValidForces(ss, outputList):
+    for element in ss.get_element_results():
+        if element['N'] < -16000 or element['N'] > 20000
+            return False
+        
+    return True
+
+def updateCost(ss,):
 
 

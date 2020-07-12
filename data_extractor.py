@@ -22,7 +22,7 @@ class DataExtractor():
             end_vertex = (float(row[2]), float(row[3]))
             start_vertex = (float(row[4]), float(row[5]))
             
-            ins_list = [start_vertex, end_vertex]
+            ins_list = [start_vertex, end_vertex, float(row[6])]
             output_list.append(ins_list)
 
         print(output_list)
