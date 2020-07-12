@@ -1,3 +1,4 @@
+
 '''
 Created on Jul 12, 2020
 
@@ -27,5 +28,4 @@ class GraphicsView(QGraphicsView):
         
         if (event.angleDelta().y() > 0):
             self.scale(1.2, 1.2)
-        else:
-            self.scale(0.9, 0.9)
+        else:            self.scale(0.9, 0.9)
