@@ -18,11 +18,27 @@ class DataExtractor():
         
         output_list = []
         
+        label_table = reader[0]
+        print(label_table)
+        
+        for idx, itm in enumerate(label_table): 
+            if (itm == 'End X'):
+                end_vertex_x_idx = idx
+            if (itm == 'End Y'):
+                end_vertex_y_idx = idx
+            if (itm == 'Start X'):
+                start_vertex_x_idx = idx
+            if (itm == 'Start Y'):
+                start_vertex_y_idx = idx
+            if (itm == 'Length'):
+                length_idx = idx
+         
+        
         for row in reader[1:]:
-            end_vertex = (float(row[2]), float(row[3]))
-            start_vertex = (float(row[4]), float(row[5]))
+            end_vertex = (float(row[end_vertex_x_idx]), float(row[end_vertex_y_idx]))
+            start_vertex = (float(row[start_vertex_x_idx]), float(row[start_vertex_y_idx]))
             
-            ins_list = [start_vertex, end_vertex, float(row[6])]
+            ins_list = [start_vertex, end_vertex, float(row[length_idx])]
             output_list.append(ins_list)
 
         print(output_list)
