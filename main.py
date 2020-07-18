@@ -13,7 +13,7 @@ if __name__ == "__main__":
     
     extractor = DataExtractor() 
     #output_list = extractor.extract_data("test_data_extract3.csv")
-    input_list = extractor.extract_data("test_data_extract3.csv")  
+    input_list = extractor.extract_data("poopybridge.csv")  
     manual_list = [ [(0.0,0.0), (7.0,0.0), 7.0] , [(7.0,0.0), (14.0,0.0), 7.0] ]
 
     cool_calculator = CoolCalculator(input_list)
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     
     cool_calculator.run_analysis()
     cool_calculator.display_simulation_results()
-    print(cool_calculator.bridge_cost);
+#     print(cool_calculator.bridge_cost)
     
 #     nodeDict, bridgeCost = cool_calculator.create_members_from_list(output_list, ss)
 # 

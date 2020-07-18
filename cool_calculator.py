@@ -3,6 +3,8 @@
 import anastruct
 
 class CoolCalculator:
+    # Constants (not implmented yet)
+    
     UPPER_TENSILE_LIMIT = 10000 # Upper limit on compressive force in a member
     UPPER_COMPRESSIVE_LIMIT = 8000 # Upper limit on tensile force in a member
     LOWER_LENGTH_LIMIT = 1 # Shortest length a member can be
@@ -26,6 +28,7 @@ class CoolCalculator:
         self.is_simple_truss = False
         self.has_valid_load_distribution = False
         self.has_valid_members = False
+        self.passed_design_rules = False
          
         self.results_dict_list = [] #list of dictionaries in the form {id, length, force} for every member after calculation
         
@@ -45,13 +48,15 @@ class CoolCalculator:
         self.create_members_from_list(vertex_list)
         
         if (self.debug_mode):
-            print(self.bridge_cost)
+            print('\nInitial bridge cost: $' + str(self.bridge_cost))
         
         self.add_supports()
         self.add_loads()
         
         if (not (self.has_valid_load_distribution and self.is_simple_truss and self.has_valid_members )):
-            print('Design check was stopped before calculation.\n' + \
+            self.passed_design_rules = False
+            
+            print('\nDesign check was stopped before calculation.\n' + \
                     'You should feel bad; your bridge does not even qualify based on the design rules alone.\n' +\
                     'The status report can be reviewed below: \n')
             print('Bridge is a simple truss: ' + str(self.is_simple_truss));
@@ -67,7 +72,8 @@ class CoolCalculator:
             else:
                 print('\nCheck procedure was aborted.')
                 return
-            
+        else:
+            self.passed_design_rules = True   
         
         self.ss.solve()   
         self.solved = True
@@ -77,7 +83,10 @@ class CoolCalculator:
         self.update_cost()
         
         if (self.is_valid):
-            print('The bridge design was fully valid :)')
+            if (self.passed_design_rules):
+                print('The bridge design was fully valid :)')
+            else:
+                print('Forces did check out however:')
             print('Bridge cost: $' + str(self.bridge_cost))
         else:
             print('Your bridge design is bad and you are bad. The forces don\'t check out :(')
@@ -150,6 +159,8 @@ class CoolCalculator:
                 
         if nodeCount < 5:
             self.has_valid_load_distribution = False
+        else: 
+            self.has_valid_load_distribution = True
         
         distributedLoad = totalLoad / float(nodeCount) * 1000 #point load on each node
     
@@ -189,7 +200,8 @@ class CoolCalculator:
                 self.is_valid = False
                 
                 if (self.debug_mode):
-                    print(str(element['id']) + ' ' + str(element['force']))
+                    print('Force at member id ' + str(element['id']) + \
+                        ' failed with an internal force of ' + str(element['force']) + ' N')
                     
     #Update cost to account for doubled up members
     def update_cost(self):
@@ -203,7 +215,9 @@ class CoolCalculator:
                 doubledMemberList.append(element['id'])    
         
         if self.debug_mode:
+            print('\nDoubled up member list: \n')
             print(doubledMemberList)
+            print('\n')
 
 
 

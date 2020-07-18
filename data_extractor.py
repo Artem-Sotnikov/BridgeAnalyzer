@@ -9,6 +9,8 @@ import anastruct as ans
 from anastruct import Vertex
 
 class DataExtractor():
+    DEBUG_MODE = True
+    
     def __init__(self):
         pass
     
@@ -19,7 +21,9 @@ class DataExtractor():
         output_list = []
         
         label_table = reader[0]
-        print(label_table)
+        if (self.DEBUG_MODE):
+            print('\nDataExtractor label table:')
+            print(label_table)
         
         for idx, itm in enumerate(label_table): 
             if (itm == 'End X'):
@@ -40,8 +44,9 @@ class DataExtractor():
             
             ins_list = [start_vertex, end_vertex, float(row[length_idx])]
             output_list.append(ins_list)
-
-        print(output_list)
+        if (self.DEBUG_MODE):
+            print('\nDataExtractor raw output:')
+            print(output_list)
         return output_list
 
 if __name__ == '__main__':
