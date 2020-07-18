@@ -13,7 +13,7 @@ if __name__ == "__main__":
     
     extractor = DataExtractor() 
     #output_list = extractor.extract_data("test_data_extract3.csv")
-    output_list = extractor.extract_data("caveman_bridge_output.csv")  
+    output_list = extractor.extract_data("poopybridge.csv")  
 
     ss = anastruct.SystemElements()
     
