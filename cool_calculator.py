@@ -3,9 +3,18 @@
 import anastruct
 
 class CoolCalculator:
+    UPPER_TENSILE_LIMIT = 10000 # Upper limit on compressive force in a member
+    UPPER_COMPRESSIVE_LIMIT = 8000 # Upper limit on tensile force in a member
+    LOWER_LENGTH_LIMIT = 1 # Shortest length a member can be
+    OVERALL_BRIDGE_LOAD = 28.0 # Overall bridge load
+    MINIMUM_LOADING_DISTANCE = 3 # A laod has to be applied at least this much
+    BRIDGE_SPAN = 14 # How long the bridge is
+    
     def __init__(self, bridge_data):
         
-        self.debug_mode = False;
+        self.debug_mode = False
+        self.ignore_design_rules = False
+        self.critical_design_failure = False
         
         self.ss = anastruct.SystemElements()
         self.bridge_cost = 0.0
@@ -21,9 +30,13 @@ class CoolCalculator:
         self.results_dict_list = [] #list of dictionaries in the form {id, length, force} for every member after calculation
         
         self.is_valid = False
+        self.solved = False
     
     def set_debug_mode(self, debug):
         self.debug_mode = debug
+    
+    def set_ignore_design_rules(self, ignore):
+        self.ignore_design_rules = ignore
     
     # All-encompassing function that will perform a basic check
     def run_analysis(self):
@@ -38,15 +51,27 @@ class CoolCalculator:
         self.add_loads()
         
         if (not (self.has_valid_load_distribution and self.is_simple_truss and self.has_valid_members )):
-            print('Design check was aborted before calculation.\n' + \
+            print('Design check was stopped before calculation.\n' + \
                     'You should feel bad; your bridge does not even qualify based on the design rules alone.\n' +\
                     'The status report can be reviewed below: \n')
             print('Bridge is a simple truss: ' + str(self.is_simple_truss));
             print('Bridge has a valid load distribution: ' + str(self.has_valid_load_distribution))
-            print('Bridge has all members > 1m: ' + str(self.has_valid_members))
-            return
+            print('Bridge has all members gretaer than minimum member length: ' + str(self.has_valid_members))
+            
+            if (self.critical_design_failure):
+                print('Due to a critical design failure, calculation could not be proceeded, and check was aborted.')
+                return
+                
+            if (self.ignore_design_rules):
+                print('Nontheless, calculation was proceeded as design rules are being ignored.')
+            else:
+                print('\nCheck procedure was aborted.')
+                return
+            
         
         self.ss.solve()   
+        self.solved = True
+        
         self.construct_force_dict()
         self.check_forces()
         self.update_cost()
@@ -93,13 +118,21 @@ class CoolCalculator:
     #Add pin and roller support to appropriate nodes
     #Based on left support being at 0,0 and right support being at 14,0
     def add_supports(self):
+        roller_flag = False
+        hinge_flag = False
+        
         for key, val in self.node_dict.items():
             #leftmost support is a roller support
             if val[0] == 0 and val[1] == 0:
                 self.ss.add_support_roll(key, direction=2)
+                roller_flag = True
+                
             #rightmost support is a hinged support
             elif val[0] == 14 and val[1] == 0:
                 self.ss.add_support_hinged(key)
+                hinge_flag = True
+                
+        self.critical_design_failure = not (roller_flag and hinge_flag)
     
     #Add distributed loads to nodes directly supporting the train
     def add_loads(self):
@@ -117,9 +150,6 @@ class CoolCalculator:
                 
         if nodeCount < 5:
             self.has_valid_load_distribution = False
-            return
-        else:
-            self.has_valid_load_distribution = True
         
         distributedLoad = totalLoad / float(nodeCount) * 1000 #point load on each node
     
@@ -128,9 +158,13 @@ class CoolCalculator:
             self.ss.point_load(key, Fy=-distributedLoad)
 
     
-    #not really sure if this works
     def display_simulation_results(self):
         self.ss.show_structure()
+        
+        if (not self.solved):
+            print('Bridge design has not been solved, thus reaction and axial forces cannot be displayed!')
+            return
+        
         self.ss.show_reaction_force()
         self.ss.show_axial_force()
     
@@ -154,7 +188,9 @@ class CoolCalculator:
             if element['force'] < -16000 or element['force'] > 20000:
                 self.is_valid = False
                 
-    
+                if (self.debug_mode):
+                    print(str(element['id']) + ' ' + str(element['force']))
+                    
     #Update cost to account for doubled up members
     def update_cost(self):
     
