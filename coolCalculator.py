@@ -59,6 +59,12 @@ def addLoads(ss, outputList):
     for key in loadNodes.keys():
         ss.point_load(key, Fy=-distributedLoad)
 
+    if nodeCount < 5:
+        print("Not enough nodes along base")
+        return False
+
+    return True
+
 #not really sure if this works
 def runSimulation(ss):
     ss.show_structure()
@@ -77,11 +83,17 @@ def returnForceDict(ss):
 
 #Check if it is possible to construct bridge with doubled up members
 #Return True if bridge is valid, false if not
-def isValidForces(outputList):
+def isValid(outputList):
     
     for element in outputList:
         if element['force'] < -16000 or element['force'] > 20000:
+            print("One of your forces exceeds the max.")
             return False
+        if element['length'] < 1:
+            print ("One of your members is too short")
+            return False
+
+    
         
     return True
 

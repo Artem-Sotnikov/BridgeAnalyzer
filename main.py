@@ -13,7 +13,7 @@ if __name__ == "__main__":
     
     extractor = DataExtractor() 
     #output_list = extractor.extract_data("test_data_extract3.csv")
-    output_list = extractor.extract_data("poopybridge.csv")  
+    output_list = extractor.extract_data("caveman_bridge_output.csv")  
 
     ss = anastruct.SystemElements()
     
@@ -22,13 +22,15 @@ if __name__ == "__main__":
     #print(nodeDict)
     
     coolCalculator.addSupports(ss, nodeDict)
-    coolCalculator.addLoads(ss, nodeDict)
+
+    if not coolCalculator.addLoads(ss, nodeDict):
+        exit()
 
     ss.solve()
     
     forceDict = coolCalculator.returnForceDict(ss)
      
-    if coolCalculator.isValidForces(forceDict):
+    if coolCalculator.isValid(forceDict):
         print("Very valid, much wow")
         bridgeCost = coolCalculator.updateCost(forceDict, bridgeCost)
         print("Cost: $" + str(bridgeCost))
