@@ -61,20 +61,41 @@ def addLoads(ss, outputList):
 
 #not really sure if this works
 def runSimulation(ss):
-    ss.solve()
     ss.show_structure()
     ss.show_reaction_force()
     ss.show_axial_force()
 
+#Returns list of dictionary for each member (force, length)
+def returnForceDict(ss):
+    outputList = []
+    for element in ss.get_element_results():
+        outputList.append({'id' : element['id'], 'length' : element['length'], 'force' : element['N']})
+
+    return outputList
+        
+
+
 #Check if it is possible to construct bridge with doubled up members
 #Return True if bridge is valid, false if not
-def isValidForces(ss, outputList):
-    for element in ss.get_element_results():
-        if element['N'] < -16000 or element['N'] > 20000
+def isValidForces(outputList):
+    
+    for element in outputList:
+        if element['force'] < -16000 or element['force'] > 20000:
             return False
         
     return True
 
-def updateCost(ss,):
+#Update cost to account for doubled up members
+def updateCost(outputList, bridgeCost):
 
+    doubledMemberList = []
+    
+    for element in outputList:
+        #check if force is high enough to warrant doubleing up, but not too high to be invalid
+        if (element['force'] < -8000 and element['force'] > - 16000) or element['force'] > 10000 and element['force'] < 20000:
+            bridgeCost += element['length']*10
+            doubledMemberList.append(element['id'])    
+
+    print(doubledMemberList)
+    return bridgeCost
 
