@@ -30,6 +30,10 @@ class CoolCalculator:
         vertex_list = self.raw_element_list
         
         self.create_members_from_list(vertex_list)
+        
+        if (self.debug_mode):
+            print(self.bridge_cost)
+        
         self.add_supports()
         self.add_loads()
         

@@ -16,6 +16,7 @@ if __name__ == "__main__":
     output_list = extractor.extract_data("test_data_extract3.csv")  
 
     cool_calculator = CoolCalculator(output_list);
+    cool_calculator.set_debug_mode(True)
     
     cool_calculator.run_analysis()
     cool_calculator.display_simulation_results()
