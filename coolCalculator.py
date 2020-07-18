@@ -1,5 +1,5 @@
 #This is a test :P
-#Maximo's kickass code
+#Maximo's (and Artem's) kickass code
 import anastruct
 
 #Add all elements to truss
@@ -60,7 +60,7 @@ def addLoads(ss, outputList):
         ss.point_load(key, Fy=-distributedLoad)
 
     if nodeCount < 5:
-        print("Not enough nodes along base")
+        print("Not enough nodes along base, calculations aborted")
         return False
 
     return True
@@ -78,8 +78,9 @@ def returnForceDict(ss):
         outputList.append({'id' : element['id'], 'length' : element['length'], 'force' : element['N']})
 
     return outputList
-        
 
+def isSimpleTruss(number_of_nodes, number_of_elements):
+    return (number_of_elements == 2*(number_of_nodes) - 3)
 
 #Check if it is possible to construct bridge with doubled up members
 #Return True if bridge is valid, false if not
@@ -92,8 +93,6 @@ def isValid(outputList):
         if element['length'] < 1:
             print ("One of your members is too short")
             return False
-
-    
         
     return True
 
@@ -110,4 +109,6 @@ def updateCost(outputList, bridgeCost):
 
     print(doubledMemberList)
     return bridgeCost
+
+
 
