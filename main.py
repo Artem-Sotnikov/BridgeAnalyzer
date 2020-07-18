@@ -13,7 +13,7 @@ if __name__ == "__main__":
     
     extractor = DataExtractor() 
     #output_list = extractor.extract_data("test_data_extract3.csv")
-    output_list = extractor.extract_data("caveman_bridge_output.csv")  
+    output_list = extractor.extract_data("test_data_extract3.csv")  
 
     ss = anastruct.SystemElements()
     
@@ -25,7 +25,10 @@ if __name__ == "__main__":
 
     if not coolCalculator.addLoads(ss, nodeDict):
         exit()
-
+    if not coolCalculator.isSimpleTruss(len(nodeDict), len(output_list)):
+        print('Bridge is not a simple truss, calculations aborted')
+        exit()
+    
     ss.solve()
     
     forceDict = coolCalculator.returnForceDict(ss)
