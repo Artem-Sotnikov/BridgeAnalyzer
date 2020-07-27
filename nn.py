@@ -15,9 +15,6 @@ class Layer:
 		np.maximum(self.a, 0, self.a)
 
 class NN:
-	layers = []
-	last_size = 0
-
 	def add_layer(self, size):
 		# the first layer is just input
 		if not self.last_size:
@@ -29,6 +26,8 @@ class NN:
 
 	def __init__(self, config=None):
 		# config is a one-dimensional iterable whose elements are layer sizes in order (L->R)
+		self.layers = []
+		self.last_size = 0
 		for i in config:
 			self.add_layer(i)
 
@@ -49,25 +48,30 @@ class Member(NN):
 		self.truss = []
 	
 	def compute(self, inp):
-		super().compute(inp)
+		return super().compute(inp)
 		# overloaded compute will run the nn the specified number of times to produce every member/joint in the truss
 
 class GeneticAlgorithm:
-	def __init__(self, member, population_size, mutation_factor):
-		self.population = np.array([member for _ in range(population_size)])
+	def __init__(self, conf, population_size, mutation_factor):
+		self.population = np.array([Member(config=conf) for _ in range(population_size)])
 		self.transition_pop = dcp(self.population)
 		self.population_size = population_size
 		self.mutation_factor = mutation_factor
 		self.generation = 0
-		self.pop_fitness = np.zeors(population_size)
+		self.pop_fitness = np.zeros(population_size)
 
 	def perform(self):
 		for i, a in enumerate(self.population):
-			size = self.population[0].layers[0].a.shape[0]
-			self.pop_fitness[i] = a.compute(np.zeros(size))
+			size = self.population[0].layers[0].a.shape
+			# change this step for different architectures/approaches
+			self.pop_fitness[i] = a.compute(np.random.random(size)-.5)
+			# self.pop_fitness[i] = a.compute(np.ones(3))
 
 	def compute_fitness(self):
-		pass
+		# test case of just a simple quadratic function
+		for i, a in enumerate(self.population):
+			self.pop_fitness[i] = (a.get_output().sum() - a.layers[0].a[0] - a.layers[0].a[1] * 5 - a.layers[0].a[2] * .5)**-2*5
+		print(self.pop_fitness)
 
 	def normalize_fitness(self):
 		max_ = self.pop_fitness.max()
@@ -79,21 +83,37 @@ class GeneticAlgorithm:
 		self.normalize_fitness()
 		for i, a in enumerate(self.population):
 			# each individual from the population
-			for b in self.population:
+			for j, b in enumerate(self.population):
 				# tries to find a mate in the population
-				if np.random.random() > self.pop_fitness[i]:
+				# if np.random.random() > self.pop_fitness[i]:
+				if self.pop_fitness[j] > 0.95:
 					# mating + mutation happens here
+					self.transition_pop[i] = dcp(a)
+					for c in range(len(a.layers)):
+						gene = np.random.random(a.layers[c].w.shape) - .5
+						self.transition_pop[i].layers[c].w = a.layers[c].w*(gene>=0) + b.layers[c].w*(gene<0) + gene*(np.random.random(a.layers[c].w.shape)-.6>0)*self.mutation_factor
+						gene = np.random.random(a.layers[c].b.shape) - .5
+						self.transition_pop[i].layers[c].b = a.layers[c].b*(gene>=0) + b.layers[c].b*(gene<0) + gene*(np.random.random(a.layers[c].b.shape)-.6>0)*self.mutation_factor
 					break
+		self.population = dcp(self.transition_pop)
 
 	def evolve(self):
-		pass
+		self.perform()
+		self.compute_fitness()
+		self.reproduce()
+		self.generation += 1
+		print(self.test(np.ones(3)))
+
+	def test(self, inp):
+		temp_ind, temp_score = 0, 0
+		for i, a in enumerate(self.pop_fitness):
+			if a > temp_score:
+				temp_ind, temp_score = i, a
+		huh = self.population[temp_ind]
+		return huh.compute(inp)
 
 if __name__ == '__main__':
-	# unit test successful
-	ha = NN()
-	ha.add_layer(3)
-	ha.add_layer(2)
-	print(ha.layers[1].w, '\n')
-	print(ha.layers[1].b, '\n')
-	ha.compute(np.array([2 for i in range(3)]))
-	print(ha.layers[1].a)
+	test = GeneticAlgorithm([3,1], 20, 2)
+	for i in range(100):
+		test.evolve()
+	# print(test.test(np.ones(3)))
