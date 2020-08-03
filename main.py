@@ -13,7 +13,7 @@ if __name__ == "__main__":
     
     extractor = DataExtractor() 
     #output_list = extractor.extract_data("test_data_extract3.csv")
-    output_list = extractor.extract_data("poopybridge.csv")  
+    output_list = extractor.extract_data("KillMe.csv")  
 
     ss = anastruct.SystemElements()
     
@@ -35,11 +35,11 @@ if __name__ == "__main__":
      
     if coolCalculator.isValid(forceDict):
         print("Very valid, much wow")
-        bridgeCost = coolCalculator.updateCost(forceDict, bridgeCost)
-        print("Cost: $" + str(bridgeCost))
     else:
         print("Not valid, very sad :(")
-        print("Cost: Your bridge is bad and so are you")    
+
+    bridgeCost = coolCalculator.updateCost(forceDict, bridgeCost)
+    print("Cost: $" + str(bridgeCost))   
 
     coolCalculator.runSimulation(ss)
     
