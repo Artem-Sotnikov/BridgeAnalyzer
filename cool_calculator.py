@@ -4,7 +4,6 @@ import anastruct
 
 class CoolCalculator:
     # Constants (not implmented yet)
-    
     UPPER_TENSILE_LIMIT = 10000 # Upper limit on compressive force in a member
     UPPER_COMPRESSIVE_LIMIT = 8000 # Upper limit on tensile force in a member
     LOWER_LENGTH_LIMIT = 1 # Shortest length a member can be
@@ -47,11 +46,13 @@ class CoolCalculator:
         
         self.create_members_from_list(vertex_list)
         
+        
         if (self.debug_mode):
             print('\nInitial bridge cost: $' + str(self.bridge_cost))
         
         self.add_supports()
-        self.add_loads()
+#         self.add_loads()
+        self.add_loads_distributed_manually()
         
         if (not (self.has_valid_load_distribution and self.is_simple_truss and self.has_valid_members )):
             self.passed_design_rules = False
@@ -168,6 +169,44 @@ class CoolCalculator:
         for key in loadNodes.keys():
             self.ss.point_load(key, Fy=-distributedLoad)
 
+    def retrieve_node_id_by_coordinates(self, target_x, target_y):
+        for key, node in self.node_dict.items():
+            if node[0] == target_x and node[1] == target_y:
+                return key
+
+    def add_loads_distributed_manually(self):
+        self.has_valid_load_distribution = True
+        noad_to_load_dict = {}
+        
+        for elem in self.raw_element_list:
+            print(elem)
+            if elem[0][1] == 0 and elem[1][1] == 0:
+                
+                if (elem[2] > 3):
+                    self.has_valid_load_distribution = False
+                    self.critical_design_failure = True
+                    
+                start_node_id = self.retrieve_node_id_by_coordinates(elem[0][0], elem[0][1])
+                end_node_id = self.retrieve_node_id_by_coordinates(elem[1][0], elem[1][1])
+                load_on_elem = elem[2]*2000
+                
+                if (noad_to_load_dict.get(start_node_id)):
+                    noad_to_load_dict[start_node_id] += load_on_elem*0.5
+                else:
+                    noad_to_load_dict[start_node_id] = load_on_elem*0.5
+                    
+                if (noad_to_load_dict.get(end_node_id)):
+                    noad_to_load_dict[end_node_id] += load_on_elem*0.5
+                else:
+                    noad_to_load_dict[end_node_id] = load_on_elem*0.5
+                
+
+                print('bottom element: ' + str(elem))
+        
+        for node_id, load in noad_to_load_dict.items():
+            self.ss.point_load(node_id, Fy = -load)
+        
+        
     
     def display_simulation_results(self):
         self.ss.show_structure()
