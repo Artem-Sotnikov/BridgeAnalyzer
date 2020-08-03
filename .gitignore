@@ -14,6 +14,10 @@ topside_qtcreator.*
 
 # Python
 
+# Working files
+
+*.csv
+
 venv/
 
 __pycache__/
