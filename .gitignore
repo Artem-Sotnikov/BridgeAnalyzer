@@ -23,3 +23,10 @@ venv/
 __pycache__/
 *.py[cod]
 
+bin
+.vscode 
+lib
+lib64
+share
+include
+*.cfg 
