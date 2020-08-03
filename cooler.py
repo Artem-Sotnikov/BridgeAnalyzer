@@ -1,16 +1,15 @@
-#!/use/bin/env python3
+#!./bin/python3
 from anastruct import SystemElements as SE
 import pandas as pd
 
 if __name__ == '__main__':
-    file = pd.read_csv('truss.csv')
+    truss = pd.read_csv('truss.csv')
     ss = SE()
     cost = 0
-    for i in file.itertuples():
-        end_points = [[i[4], i[5]], [i[7], i[8]]]
-        ss.add_truss_element(end_points)
-        cost += i.Length * 10
-        if end_points[0][1] == 0 and end_points[1][1] == 0:
+    for i in zip(truss['Start X'], truss['Start Y'], truss['End X'], truss['End Y'], truss['Length']):
+        ss.add_truss_element([[i[0], i[1]], [i[2], i[3]]])
+        cost += i[4] * 10
+        if i[1] == 0 and i[3] == 0:
             ss.q_load(-2, ss.id_last_element)
 
     ss.add_support_hinged(ss.find_node_id([0,0]))
@@ -23,7 +22,7 @@ if __name__ == '__main__':
     cost += len(ss.node_map) * 5
 
     print('there were a total of %d plates and %d members' % (len(ss.node_map), len(ss.element_map)))
-    print('simple truss index: %d' % (len(ss.node_map)*2-3-len(ss.element_map)))
+    print('simple truss index: %d (0 means simple truss)' % (len(ss.node_map)*2-3-len(ss.element_map)))
     for i in results:
         if i['N'] > 10 or i['N'] < -8:
             cost += i['length'] * 10
