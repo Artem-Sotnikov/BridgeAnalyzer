@@ -17,16 +17,18 @@ if __name__ == '__main__':
     ss.add_support_roll(ss.find_node_id([14,0]))
 
     ss.solve()
-    ss.show_structure()
-    # ss.show_reaction_force()
-    ss.show_axial_force()
     results = ss.get_element_results()
+    print([(i['id'], i['N']) for i in results])
 
     cost += len(ss.node_map) * 5
 
     print('there were a total of %d plates and %d members' % (len(ss.node_map), len(ss.element_map)))
     print('simple truss index: %d' % (len(ss.node_map)*2-3-len(ss.element_map)))
+    for i in results:
+        if i['N'] > 10 or i['N'] < -8:
+            cost += i['length'] * 10
     print('total cost brings you $%f' % cost)
 
-    print([(i['id'], i['N']) for i in results])
-    
+    ss.show_axial_force()
+    ss.show_structure()
+    ss.show_reaction_force()
