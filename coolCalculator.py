@@ -41,24 +41,40 @@ def addSupports(ss, outputList):
 
 #Add distributed loads to nodes directly supporting the train
 def addLoads(ss, outputList):
-    totalLoad = 28.0 #Total distributed load for 2D truss
+    load = 2000.0
     nodeCount = 0 #Number of nodes that load is being distributed on
-
+    nodeDist = 999.0 #Shortest distance between nodes on the bottom
+    referenceNode = 0.0
+    
     loadNodes = {}
+
+    print("Output LIST: ")
+    print(outputList)
 
     #Iterate through all nodes and keep track of which nodes have point loads
     #Also keep track of how many nodes to distribute load on
     for key,val in outputList.items():
-        if int(float(val[1])) == 0:
+        if int(float(val[1]) == 0):
             nodeCount = nodeCount + 1
             loadNodes[key] = val
+            if nodeCount == 1:
+                referenceNode = float(val[0])
+            elif nodeCount > 1:
+                nodeDist = min(abs(nodeDist), abs(referenceNode - float(val[0])))
 
-    distributedLoad = totalLoad / float(nodeCount) * 1000 #point load on each node
+    print ("NODE DIST" + str(nodeDist))
+    print ("Nodelist")
+    print(loadNodes)
 
     #Add load to relevant points
-    for key in loadNodes.keys():
-        ss.point_load(key, Fy=-distributedLoad)
+    for key,val in loadNodes.items():
+        if float(val[0]) == 0 or float(val[0]) == 14:
+            ss.point_load(key, Fy=-load*nodeDist*0.5)
+        elif float(val[1] == 0):
+            ss.point_load(key, Fy=-load*nodeDist)
 
+    print("nodeDist: " + str(nodeDist))
+    
     if nodeCount < 5:
         print("Not enough nodes along base, calculations aborted")
         return False
@@ -85,16 +101,17 @@ def isSimpleTruss(number_of_nodes, number_of_elements):
 #Check if it is possible to construct bridge with doubled up members
 #Return True if bridge is valid, false if not
 def isValid(outputList):
+    returnVal = True
     
     for element in outputList:
         if element['force'] < -16000 or element['force'] > 20000:
-            print("One of your forces exceeds the max.")
-            return False
+            print("One of your forces exceeds the max: " + str(element['id']) + ": " + str(element['force']))
+            returnVal = False
         if element['length'] < 1:
-            print ("One of your members is too short")
-            return False
+            print ("One of your members is too short: " + str(element['id']) + ": " + str(element['length']))
+            returnVal = False
         
-    return True
+    return returnVal
 
 #Update cost to account for doubled up members
 def updateCost(outputList, bridgeCost):
