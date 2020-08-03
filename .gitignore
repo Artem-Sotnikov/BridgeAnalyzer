@@ -19,3 +19,10 @@ venv/
 __pycache__/
 *.py[cod]
 
+bin
+include
+lib
+lib64
+share
+*.cfg 
+*.csv
