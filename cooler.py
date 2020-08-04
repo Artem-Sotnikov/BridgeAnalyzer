@@ -26,7 +26,7 @@ if __name__ == '__main__':
     for i in results:
         if i['N'] > 10 or i['N'] < -8:
             cost += i['length'] * 10
-    print('total cost brings you $%f' % cost)
+    print('total cost brings you $%.2f' % cost)
 
     ss.show_axial_force()
     ss.show_structure()
