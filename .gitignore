@@ -8,6 +8,7 @@
 .vscode/
 .pydevproject
 .project
+.DS_STORE
 
 # Qt Designer Config Files
 topside_qtcreator.*
