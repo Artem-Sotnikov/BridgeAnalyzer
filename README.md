@@ -19,9 +19,7 @@ python3 -m venv .
 
 ## Usage
 
-Two versions currently exist (merging in progress):
-to run Maximo/Artem's version, do `python main.py`;
-to run Stephen's version, do `./cooler.py` (or `.\cooler.py` on Windows)
+To run the coolest version, do `./coolest.py` (or `.\coolest.py` on Windows)
 when using a Python virtual environment located in this directory.
 
 PS use Python <3.8 (not including) if you can in case the installation script
