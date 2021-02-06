@@ -1,32 +1,122 @@
 #!./bin/python3
 from anastruct import SystemElements as SE
 import pandas as pd
+import yaml
+CONFIG_PATH = 'config.yaml'
+
+def validate_config(config: dict) -> list: 
+    '''
+    Validates the configuration file based in its internal parameters
+    
+    Parameters
+    ----------
+    config: dict 
+        The contents of the yaml config files
+
+    Returns
+    -------
+    list:
+        The error log of the problems with the configuration file
+    '''
+
+    # Check for pin/roller supports
+    config_error_log = [] #relevant errors to be logged
+
+    if config['constraints']['enforce_support_level']:
+        x_level = config['pin_supports'][0]['x']
+        for support in config['roller_supports'] + config['pin_supports']:
+            if support['x'] != x_level:
+                config_error_log.append('Supports are not at the same level')
+                break
+
+    if (not config['pin_supports']):
+        config_error_log.append("No pin supports")
+    if (not config['roller_supports']):
+        config_error_log.append("No roller supports")
+    if (not config['point_loads']):
+        config_error_log.append("No point loads")
+
+    return config_error_log
+
+def validate_truss(config, truss) -> list: 
+    #TODO finish the function; not done yet
+    '''
+    Validates the truss structure based on the constraints of the config file
+    
+    Parameters
+    ----------
+    config: dict 
+        The contents of the yaml config files
+    truss: anastruct.SystemElements
+        The truss object
+
+    Returns
+    -------
+    list:
+        The error log of the problems with the configuration file
+    '''
+    # Check for pin/roller supports
+    config_error_log = [] #relevant errors to be logged
+
+    if config['constraints']['enforce_support_level']:
+        x_level = config['pin_supports'][0]['x']
+        for support in config['roller_supports'] + config['pin_supports']:
+            if support['x'] != x_level:
+                config_error_log.append('Supports are not at the same level')
+                break
+    
+    if (not config['pin_supports']):
+        config_error_log.append("No pin supports")
+    if (not config['roller_supports']):
+        config_error_log.append("No roller supports")
+    if (not config['point_loads']):
+        config_error_log.append("No point loads")
+
+    return config_error_log
 
 if __name__ == '__main__':
-    truss = pd.read_csv('truss.csv')
+    # Load the yaml file
+    with open(CONFIG_PATH) as file:
+        config = yaml.load(file, Loader=yaml.FullLoader)
+    
+    # Validate yaml file
+    error_log = validate_config(config)
+    if not error_log:
+        raise Exception('You are bad')
+
+    # Create the SystemElements object
+    truss = pd.read_csv(config['data_path'])
     ss = SE()
-    cost = 0
     for i in zip(truss['Start X'], truss['Start Y'], truss['End X'], truss['End Y'], truss['Length']):
         ss.add_truss_element([[i[0], i[1]], [i[2], i[3]]])
-        cost += i[4] * 10
-        if i[1] == 0 and i[3] == 0:
-            ss.q_load(-2, ss.id_last_element)
 
-    ss.add_support_hinged(ss.find_node_id([0,0]))
-    ss.add_support_roll(ss.find_node_id([14,0]))
+    # Adding pin supports
+    for i in config['pin_supports']:
+        try:
+            ss.add_support_hinged(ss.find_node_id([i['x'], i['y']]))
+        except AttributeError as e:
+            print('pin support node not found: ', i['x'], i['y'])
+
+    # Adding roller supports
+    for i in config['roller_supports']:
+        try: 
+            ss.add_support_roll(ss.find_node_id([i['x'], i['y']]))
+        except AttributeError as e:
+            print('roller support node not found: ', i['x'], i['y'])
+
+    # Adding point loads
+    for i in config['point_loads']:
+        try:
+            node_id = ss.find_node_id(vertex=[i['location']['x'], i['location']['y']])
+            ss.point_load(node_id, Fy=i['magnitude'])
+        except AttributeError as e:
+            print('point load node not found: ', i['location']['x'], i['location']['y'])
 
     ss.solve()
     results = ss.get_element_results()
     print([(i['id'], i['N']) for i in results])
 
-    cost += len(ss.node_map) * 5
-
-    print('there were a total of %d plates and %d members' % (len(ss.node_map), len(ss.element_map)))
-    print('simple truss index: %d (0 means simple truss)' % (len(ss.node_map)*2-3-len(ss.element_map)))
-    for i in results:
-        if i['N'] > 10 or i['N'] < -8:
-            cost += i['length'] * 10
-    print('total cost brings you $%.2f' % cost)
+    # TODO: Check if members break/consider material properties
 
     ss.show_axial_force()
     ss.show_structure()

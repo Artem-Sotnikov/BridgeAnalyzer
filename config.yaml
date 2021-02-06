@@ -1,0 +1,46 @@
+data_path: "./truss.csv"
+debug: true
+check_constraints: true
+
+pin_supports: 
+  - {x: 0.0, y: 0.0}
+roller_supports:
+  - {x: 14.0, y: 0.0}
+
+# positive magnitude: up, negative magnitude: down
+point_loads:
+  - {
+    magnitude: 1000,
+    location: {x: 3.0000, y: 0.0000}
+  }  
+  
+material_properties:
+  pin:
+    E: # GPa
+    # stresses in MPa
+    shear_yield: 0
+    tensile_yield: 0
+    shear_ultimate: 0
+    tensile_ultimate: 0
+    density: 0 # kg/m^3
+  member:
+    E: 0 # GPa
+    # stresses in MPa
+    shear_yield: 0
+    tensile_yield: 0
+    shear_ultimate: 0
+    tensile_ultimate: 0
+    density: 0 # kg/m^3
+  
+design_parameters:
+  thickness_increment: 0.0 # mm
+  pin_diameter: 0.125 # mm
+
+constraints:
+  bridge_width: 0
+  enforce_bridge_width: true
+  bridge_height: 0
+  enforce_bridge_height: true
+  bridge_length: 0
+  enforce_bridge_length: true
+  enforce_support_level: true
