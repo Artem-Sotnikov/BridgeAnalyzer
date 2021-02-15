@@ -1,7 +1,9 @@
 #!./bin/python3
 from anastruct import SystemElements as SE
+import math
 import pandas as pd
 import yaml
+import matplotlib.pyplot as plt
 CONFIG_PATH = 'config.yaml'
 
 def validate_config(config: dict) -> list: 
@@ -74,6 +76,45 @@ def validate_truss(config, truss) -> list:
 
     return config_error_log
 
+# make sure lengths are in mm and thus the forces are in N
+# return minimum second moment of area
+def euler_buckling_load(config, force, length):
+    '''
+    Calculates the euler buckling load.
+    
+    Parameters
+    ----------
+    config: dict 
+        The contents of the yaml config files
+    force: float
+        The force being exerted as compression in this member (in N)
+    length:
+        The length of the member
+
+    Returns
+    -------
+    float:
+        The second moment of area that this member will need to achieve in order to not break
+    '''
+    secondMomentOfArea = (force * pow(length, 2)) / (pow(math.pi,2) * config.member.E)
+    return secondMomentOfArea
+
+def find_crossectional_area(member_loads: dict):
+    '''
+    Calculates the cross-sectional area of all members.
+    
+    Parameters
+    ----------
+    config: dict 
+         containing the loads (in N) on all the members
+    
+    Returns
+    -------
+    
+    '''
+    for i in member_loads:
+        pass
+
 if __name__ == '__main__':
     # Load the yaml file
     with open(CONFIG_PATH) as file:
@@ -114,10 +155,22 @@ if __name__ == '__main__':
 
     ss.solve()
     results = ss.get_element_results()
-    print([(i['id'], i['N']) for i in results])
+    print(results)
+    forceList = []
+    max_force = -999999 
+    min_force = 999999
+
+    for i in results:
+        print((i['id'], i['N']))
+        forceList.append(i['N'])
+        if i['N'] > max_force:
+            max_force = i['N']
+        if i['N'] < min_force:
+            min_force = i['N']
+
+    print("Max force ", max_force)
+    print("Min force ", min_force)
+    plt.hist(forceList)
 
     # TODO: Check if members break/consider material properties
-
-    ss.show_axial_force()
     ss.show_structure()
-    ss.show_reaction_force()
