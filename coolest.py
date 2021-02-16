@@ -78,42 +78,12 @@ def validate_truss(config, truss) -> list:
 
 # make sure lengths are in mm and thus the forces are in N
 # return minimum second moment of area
-def euler_buckling_load(config, force, length):
-    '''
-    Calculates the euler buckling load.
-    
-    Parameters
-    ----------
-    config: dict 
-        The contents of the yaml config files
-    force: float
-        The force being exerted as compression in this member (in N)
-    length:
-        The length of the member
-
-    Returns
-    -------
-    float:
-        The second moment of area that this member will need to achieve in order to not break
-    '''
-    secondMomentOfArea = (force * pow(length, 2)) / (pow(math.pi,2) * config.member.E)
+def euler_buckling_load(config: dict, force: float, length: float) -> float:
+    secondMomentOfArea = (abs(force) * length ** 2) / (math.pi ** 2 * config['material_properties']['member']['E'])
     return secondMomentOfArea
 
-def find_crossectional_area(member_loads: dict):
-    '''
-    Calculates the cross-sectional area of all members.
-    
-    Parameters
-    ----------
-    config: dict 
-         containing the loads (in N) on all the members
-    
-    Returns
-    -------
-    
-    '''
-    for i in member_loads:
-        pass
+def find_crossectional_area(config: dict, axial_load: float) -> float:
+    return axial_load/config['material_properties']['member']['tensile_ultimate']
 
 if __name__ == '__main__':
     # Load the yaml file
@@ -155,22 +125,40 @@ if __name__ == '__main__':
 
     ss.solve()
     results = ss.get_element_results()
-    print(results)
-    forceList = []
-    max_force = -999999 
-    min_force = 999999
+    forceList = [i['N'] for i in results]
+    max_force, min_force = {'N': -math.inf}, {'N': math.inf}
+    bridge_weight = 0 # this can't be determined rn :(
 
     for i in results:
-        print((i['id'], i['N']))
-        forceList.append(i['N'])
-        if i['N'] > max_force:
-            max_force = i['N']
-        if i['N'] < min_force:
-            min_force = i['N']
+        print('%i) axial load: %.3f' % (i['id'], i['N']), end=' ')
+        if i['N'] > max_force['N']:
+            max_force = i
+        if i['N'] < min_force['N']:
+            min_force = i 
+        if i['N'] > 0: # tension
+            A = find_crossectional_area(config, i['N'])
+            print('min crossectional area: %.3f' % A)
+            bridge_weight += A*i['length']*config['material_properties']['member']['density']
+        else: # compression
+            I = euler_buckling_load(config, i['N'], i['length'])
+            print('min 2nd moment of area: %.3f' % I)
+            # bridge_weight += 12*i['length']*I/\
+            #     config['design_parameters']['thickness_increment']**2 *\
+            #     config['material_properties']['member']['density']
+            bridge_weight += 12**(1/3)*i['length']*I**(1/3)*\
+                config['design_parameters']['thickness_increment']**(2/3)*\
+                config['material_properties']['member']['density']
+        print()
 
-    print("Max force ", max_force)
-    print("Min force ", min_force)
+    bridge_weight += bridge_weight + len(ss.node_map)*config['constraints']['bridge_width']*config['material_properties']['pin']['density']
+
+    pvRatio = -config['point_loads'][0]['magnitude']/9.81*1000/bridge_weight * 2
+    print("Max force %.3f N at node %i" % (max_force['N'], max_force['id']))
+    print("Min force %.3f N at node %i" % (min_force['N'], min_force['id']))
+    print("Bridge Weight: %.5f g" % (bridge_weight))
+    print("PV Ratio: %.3f" % (pvRatio))
     plt.hist(forceList)
+    plt.show()
 
     # TODO: Check if members break/consider material properties
     ss.show_structure()
