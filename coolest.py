@@ -1,4 +1,4 @@
-#!./bin/python3
+#!/usr/bin/python3
 from anastruct import SystemElements as SE
 import math
 import pandas as pd
@@ -130,18 +130,18 @@ if __name__ == '__main__':
     bridge_weight = 0 # this can't be determined rn :(
 
     for i in results:
-        print('%i) axial load: %.3f' % (i['id'], i['N']), end=' ')
+        print('%i) axial load: %.3f N' % (i['id'], i['N']), end=' ')
         if i['N'] > max_force['N']:
             max_force = i
         if i['N'] < min_force['N']:
             min_force = i 
         if i['N'] > 0: # tension
             A = find_crossectional_area(config, i['N'])
-            print('min crossectional area: %.3f' % A)
+            print('min crossectional area: %.3f mm^2' % A)
             bridge_weight += A*i['length']*config['material_properties']['member']['density']
         else: # compression
             I = euler_buckling_load(config, i['N'], i['length'])
-            print('min 2nd moment of area: %.3f' % I)
+            print('min 2nd moment of area: %.3f mm^4' % I)
             # bridge_weight += 12*i['length']*I/\
             #     config['design_parameters']['thickness_increment']**2 *\
             #     config['material_properties']['member']['density']
@@ -152,12 +152,15 @@ if __name__ == '__main__':
 
     bridge_weight += bridge_weight + len(ss.node_map)*config['constraints']['bridge_width']*config['material_properties']['pin']['density']
 
-    pvRatio = -config['point_loads'][0]['magnitude']/9.81*1000/bridge_weight * 2
+    pvRatio = -config['point_loads'][0]['magnitude']/9.81*1000/bridge_weight
     print("Max force %.3f N at node %i" % (max_force['N'], max_force['id']))
     print("Min force %.3f N at node %i" % (min_force['N'], min_force['id']))
     print("Bridge Weight: %.5f g" % (bridge_weight))
     print("PV Ratio: %.3f" % (pvRatio))
     plt.hist(forceList)
+    plt.title('member axial load distribution histogram')
+    plt.xlabel('load (N)')
+    plt.ylabel('frequency')
     plt.show()
 
     # TODO: Check if members break/consider material properties
