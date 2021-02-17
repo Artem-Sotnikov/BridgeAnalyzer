@@ -79,8 +79,8 @@ def validate_truss(config, truss) -> list:
 # make sure lengths are in mm and thus the forces are in N
 # return minimum second moment of area
 def euler_buckling_load(config: dict, force: float, length: float) -> float:
-    secondMomentOfArea = (abs(force) * length ** 2) / (math.pi ** 2 * config['material_properties']['member']['E'])
-    return secondMomentOfArea * 8
+    secondMomentOfArea = (abs(force) * (length * 10e-3) ** 2) / (math.pi ** 2 * config['material_properties']['member']['E'] * 10e6)
+    return secondMomentOfArea * (1000 ** 4)
 
 def find_crossectional_area(config: dict, axial_load: float) -> float:
     return axial_load/config['material_properties']['member']['tensile_ultimate']
@@ -127,9 +127,11 @@ if __name__ == '__main__':
     results = ss.get_element_results()
     forceList = [i['N'] for i in results]
     max_force, min_force = {'N': -math.inf}, {'N': math.inf}
+    total_length = 0
     bridge_weight = 0 # this can't be determined rn :(
 
     for i in results:
+        total_length+= i['length']
         print('%i) axial load: %.3f N' % (i['id'], i['N']), end=' ')
         if i['N'] > max_force['N']:
             max_force = i
@@ -142,12 +144,12 @@ if __name__ == '__main__':
         else: # compression
             I = euler_buckling_load(config, i['N'], i['length'])
             print('min 2nd moment of area: %.3f mm^4' % I)
-            # bridge_weight += 12*i['length']*I/\
-            #     config['design_parameters']['thickness']**2 *\
-            #     config['material_properties']['member']['density']
-            bridge_weight += 12**(1/3)*i['length']*I**(1/3)*\
-                config['design_parameters']['thickness']**(2/3)*\
+            bridge_weight += 12*i['length']*I/\
+                config['design_parameters']['thickness']**2 *\
                 config['material_properties']['member']['density']
+            # bridge_weight += 12**(1/3)*i['length']*I**(1/3)*\
+            #     config['design_parameters']['thickness']**(2/3)*\
+            #     config['material_properties']['member']['density']
         print()
 
     bridge_weight += bridge_weight + len(ss.node_map)*config['constraints']['bridge_width']*config['material_properties']['pin']['density']*math.pi*3.175**2/4
@@ -155,9 +157,10 @@ if __name__ == '__main__':
     pvRatio = -config['point_loads'][0]['magnitude']/9.81*1000/bridge_weight
     print("Max force %.3f N at node %i" % (max_force['N'], max_force['id']))
     print("Min force %.3f N at node %i" % (min_force['N'], min_force['id']))
+    print("Total length %.3f mm" % (total_length))
     print("Bridge Weight: %.5f g" % (bridge_weight))
     print("PV Ratio: %.3f" % (pvRatio))
-    plt.hist(forceList)
+    plt.hist(forceList, range=(-1200,1200))
     plt.title('member axial load distribution histogram')
     plt.xlabel('load (N)')
     plt.ylabel('frequency')
@@ -165,3 +168,4 @@ if __name__ == '__main__':
 
     # TODO: Check if members break/consider material properties
     ss.show_structure()
+    # ss.show_reaction_force()

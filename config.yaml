@@ -1,4 +1,4 @@
-data_path: ""
+data_path: "./TRUSS33Check.csv"
 debug: true
 check_constraints: true
 
@@ -10,8 +10,8 @@ roller_supports:
 # positive magnitude: up, negative magnitude: down
 point_loads:
   - {
-    magnitude: -150,
-    location: {x: 200.000, y: 0.0000}
+    magnitude: -200,
+    location: {x: 200.000, y: -40.0000}
   }
   
 material_properties:
@@ -24,12 +24,12 @@ material_properties:
     tensile_ultimate: 171
     density: 6.5e-4 # g/mm^3
   member:
-    E: 3917.7
+    E: 4350
     shear_yield: 0
     tensile_yield: 0
     shear_ultimate: 0
-    tensile_ultimate: 31.02
-    density: 1.79e-4 # g/mm^3
+    tensile_ultimate: 34.468
+    density: 1.787e-4 # g/mm^3
   
 design_parameters:
   thickness: 3.2 # mm
