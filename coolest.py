@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!./bin/python3
 from anastruct import SystemElements as SE
 import math
 import pandas as pd
@@ -80,7 +80,7 @@ def validate_truss(config, truss) -> list:
 # return minimum second moment of area
 def euler_buckling_load(config: dict, force: float, length: float) -> float:
     secondMomentOfArea = (abs(force) * length ** 2) / (math.pi ** 2 * config['material_properties']['member']['E'])
-    return secondMomentOfArea
+    return secondMomentOfArea * 8
 
 def find_crossectional_area(config: dict, axial_load: float) -> float:
     return axial_load/config['material_properties']['member']['tensile_ultimate']
@@ -143,14 +143,14 @@ if __name__ == '__main__':
             I = euler_buckling_load(config, i['N'], i['length'])
             print('min 2nd moment of area: %.3f mm^4' % I)
             # bridge_weight += 12*i['length']*I/\
-            #     config['design_parameters']['thickness_increment']**2 *\
+            #     config['design_parameters']['thickness']**2 *\
             #     config['material_properties']['member']['density']
             bridge_weight += 12**(1/3)*i['length']*I**(1/3)*\
-                config['design_parameters']['thickness_increment']**(2/3)*\
+                config['design_parameters']['thickness']**(2/3)*\
                 config['material_properties']['member']['density']
         print()
 
-    bridge_weight += bridge_weight + len(ss.node_map)*config['constraints']['bridge_width']*config['material_properties']['pin']['density']
+    bridge_weight += bridge_weight + len(ss.node_map)*config['constraints']['bridge_width']*config['material_properties']['pin']['density']*math.pi*3.175**2/4
 
     pvRatio = -config['point_loads'][0]['magnitude']/9.81*1000/bridge_weight
     print("Max force %.3f N at node %i" % (max_force['N'], max_force['id']))
